@@ -1,8 +1,6 @@
-import React from 'react';
+import React, {useEffect, useState} from 'react';
 import LoginScreen from './pages/Login.js';
-import uuid from 'react-native-uuid';
-
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import {createDrawerNavigator} from '@react-navigation/drawer';
 
 import {
   Button,
@@ -24,18 +22,50 @@ import {
   LearnMoreLinks,
   ReloadInstructions,
 } from 'react-native/Libraries/NewAppScreen';
+import HomePage from './pages/Home.js';
+import {NavigationContainer, StackRouter} from '@react-navigation/native';
+import {createNativeStackNavigator} from '@react-navigation/native-stack';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+const Stack = createNativeStackNavigator();
 
 const App = () => {
+  const [isLoggedIn, setLogIn] = useState(false);
+
+  useEffect(() => {
+    const checkLogged = async () => {
+      try {
+        if (await AsyncStorage.getItem('user')) {
+          setLogIn(true);
+        } else {
+          setLogIn(false);
+        }
+      } catch (e) {
+        console.log('Error:', e);
+        setLogIn(false);
+      }
+    };
+
+    checkLogged();
+  }, [isLoggedIn]);
+
   return (
-    <SafeAreaView>
-      <StatusBar />
-      <ScrollView contentInsetAdjustmentBehavior="automatic">
-        <View>
-          <Text>Login Screen</Text>
-          <LoginScreen />
-        </View>
-      </ScrollView>
-    </SafeAreaView>
+    <NavigationContainer>
+      <Stack.Navigator>
+        {isLoggedIn ? (
+          <>
+            <Stack.Screen name="Home" component={HomePage} />
+          </>
+        ) : (
+          <>
+            <Stack.Screen
+              name="Login"
+              component={LoginScreen}
+              initialParams={{isLoggedIn: isLoggedIn, setLogIn: setLogIn}}
+            />
+          </>
+        )}
+      </Stack.Navigator>
+    </NavigationContainer>
   );
 };
 
