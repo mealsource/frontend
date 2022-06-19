@@ -6,7 +6,6 @@ import {useIsFocused} from '@react-navigation/native';
 
 import {
   ActivityIndicator,
-  Button,
   Linking,
   SafeAreaView,
   ScrollView,
@@ -16,6 +15,7 @@ import {
   TextInput,
   useColorScheme,
   View,
+  Image,
 } from 'react-native';
 
 import {
@@ -25,7 +25,11 @@ import {
   LearnMoreLinks,
   ReloadInstructions,
 } from 'react-native/Libraries/NewAppScreen';
+
+import {Button} from 'react-native-paper';
 import API_URL from './Constants';
+import SplashScreen from './Splash';
+import {color} from 'react-native-reanimated';
 
 const storeUUID = async uuid => {
   try {
@@ -53,11 +57,25 @@ const loginFunction = async (setLoading, setUUID, setUUIDExists) => {
 
 const LoginNoUUID = ({setLoading, setUUID, setUUIDExists}) => {
   return (
-    <View>
-      <Button
-        title="Login using IIIT-CAS"
-        onPress={() => loginFunction(setLoading, setUUID, setUUIDExists)}
+    <View
+      style={{
+        flexDirection: 'column',
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+      }}>
+      <Image
+        style={{width: 300, height: 150, marginBottom: 30}}
+        source={{
+          uri: 'https://upload.wikimedia.org/wikipedia/en/e/e1/International_Institute_of_Information_Technology%2C_Hyderabad_logo.png',
+        }}
       />
+      <Button
+        compact={false}
+        icon="school"
+        onPress={() => loginFunction(setLoading, setUUID, setUUIDExists)}>
+        Login using IIIT-CAS
+      </Button>
     </View>
   );
 };
@@ -65,9 +83,11 @@ const LoginNoUUID = ({setLoading, setUUID, setUUIDExists}) => {
 const LoginUUID = ({uuid, setLogIn, setUUIDExists, UUIDExists}) => {
   return (
     <Button
-      title="Click here to get your profile"
-      onPress={() => getToken(uuid, setLogIn, setUUIDExists, UUIDExists)}
-    />
+      compact={false}
+      icon="login"
+      onPress={() => getToken(uuid, setLogIn, setUUIDExists, UUIDExists)}>
+      Complete Login
+    </Button>
   );
 };
 
@@ -83,13 +103,13 @@ const getToken = async (uuid, setLogIn, setUUIDExists) => {
         const addUserToStorage = async user => {
           try {
             await AsyncStorage.setItem('user', user);
+
+            setLogIn(true);
           } catch (e) {
             console.log(e);
           }
         };
         await addUserToStorage(user);
-
-        setLogIn(true);
       } else {
         const removeValue = async () => {
           try {
@@ -109,18 +129,8 @@ const getToken = async (uuid, setLogIn, setUUIDExists) => {
     });
 };
 
-const LoadingScreen = () => {
-  return (
-    <View>
-      <ActivityIndicator />
-      <Text>Make sure you have internet access! </Text>
-      <Text>Contact maintainers if issue persists.</Text>
-    </View>
-  );
-};
-
 const LoginScreen = ({route, navigation}) => {
-  const {isLoggedIn, setLogIn} = route.params;
+  const setLogIn = route.params.setLogIn;
 
   const [loading, setLoading] = useState(true);
   const [UUIDExists, setUUIDExists] = useState(false);
@@ -134,7 +144,6 @@ const LoginScreen = ({route, navigation}) => {
           setUUIDExists(true);
           setUUID(JSON.parse(value));
           setLoading(false);
-          console.log('Ba');
         }
       } catch (e) {
         setLoading(false);
@@ -147,7 +156,7 @@ const LoginScreen = ({route, navigation}) => {
   return (
     <View>
       {loading ? (
-        <LoadingScreen />
+        <SplashScreen />
       ) : UUIDExists ? (
         <LoginUUID
           uuid={uuid}
