@@ -107,8 +107,9 @@ const StatusPage = () => {
 const Free = () => {
   return <Text>You're not engaged in any delivery currently.</Text>;
 };
-const reject = () => {
+const reject = id => {
   console.log('reject!');
+  axios.post('/order/' + id + '/reject');
 };
 
 const confirm = id => {

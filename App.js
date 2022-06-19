@@ -16,7 +16,11 @@ import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityI
 import PlacePage from './pages/Place.js';
 
 const Tab = createMaterialBottomTabNavigator();
+import {LogBox} from 'react-native';
 
+LogBox.ignoreLogs(['Warning: ...']); //Hide warnings
+
+LogBox.ignoreAllLogs(); //Hide all warning notifications on front-end
 const theme = {
   ...DefaultTheme,
   roundness: 2,

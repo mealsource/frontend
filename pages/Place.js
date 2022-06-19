@@ -1,7 +1,6 @@
 import axios from 'axios';
 import React, {useEffect, useState} from 'react';
-import {View, FlatList} from 'react-native';
-import {ScrollView} from 'react-native-gesture-handler';
+import {View, FlatList, ScrollView} from 'react-native';
 import {
   List,
   Title,
@@ -28,7 +27,7 @@ const Item = ({store, setInventory}) => (
 
 const Inv = ({invItem, setCart, cart}) => (
   <View>
-    <Headline>{invItem.name}</Headline>
+    <Text>{invItem.name}</Text>
     <Caption>{invItem.price}</Caption>
     <Text>{invItem.description}</Text>
     <Button
@@ -46,6 +45,7 @@ const PlacePage = () => {
   const [inventory, setInventory] = useState([]);
   const [cart, setCart] = useState([]);
   const [address, setAddress] = useState('');
+  const [ordered, setOrdered] = useState(false);
 
   useEffect(() => {
     const fetchStores = async () => {
@@ -55,7 +55,7 @@ const PlacePage = () => {
     };
     fetchStores();
     console.log('Inventory', inventory);
-  }, [inventory, cart]);
+  }, [inventory, cart, ordered]);
 
   const renderItem = ({item}) => (
     <Item store={item} setInventory={setInventory} />
@@ -74,41 +74,54 @@ const PlacePage = () => {
           onPress={() => console.log('Other')}
         />
       </Appbar.Header>
-      <View style={{marginTop: 20, marginLeft: 20}}>
-        <Title>Choose Store:</Title>
-        <FlatList
-          data={stores}
-          renderItem={renderItem}
-          keyExtractor={item => item._id}
-        />
-        <FlatList
-          data={inventory}
-          renderItem={renderInv}
-          keyExtractor={item => item._id}
-        />
-        <TextInput
-          label="Address"
-          value={address}
-          onChangeText={text => setAddress(text)}
-        />
-        {cart.length > 0 ? (
-          <Button
-            onPress={() => {
-              const postCart = async () => {
-                await axios.post('/order', {
-                  items: cart,
-                  destination: address,
-                });
-              };
+      {!ordered ? (
+        <ScrollView style={{marginTop: 20, marginLeft: 20}}>
+          <Title>Choose Store:</Title>
 
-              postCart();
-            }}>
-            Order!
-          </Button>
-        ) : (
-          <></>
-        )}
-      </View>
+          <View>
+            <FlatList
+              nestedScrollEnabled={true}
+              data={stores}
+              renderItem={renderItem}
+              keyExtractor={item => item._id}
+            />
+          </View>
+          <View>
+            <FlatList
+              nestedScrollEnabled={true}
+              data={inventory}
+              renderItem={renderInv}
+              keyExtractor={item => item._id}
+            />
+          </View>
+          <TextInput
+            label="Address and Phone Number (required)"
+            value={address}
+            onChangeText={text => setAddress(text)}
+          />
+          {cart.length > 0 ? (
+            <Button
+              onPress={() => {
+                const postCart = async () => {
+                  await axios.post('/order', {
+                    items: cart,
+                    destination: address,
+                  });
+                };
+
+                postCart();
+              }}>
+              Order!
+            </Button>
+          ) : (
+            <></>
+          )}
+        </ScrollView>
+      ) : (
+        <View>
+          <Text>Order has been placed!</Text>
+        </View>
+      )}
     </View>
   );
 };

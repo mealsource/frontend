@@ -63,7 +63,7 @@ const OrderList = props => {
 };
 
 const Stack = createNativeStackNavigator();
-const OrderPage = () => {
+const OrderPage = ({route, navigation}) => {
   // use user state
   const [user, setUser] = useState({});
   const [userloading, setUserLoading] = useState(true);
@@ -99,32 +99,59 @@ const OrderPage = () => {
       getUserFromStorage();
     }
   }, [user, orders]);
+
+  const refresh = () => {
+    const ordersURL = API_URL + 'orders';
+
+    const getData = async () => {
+      fetch(ordersURL, {
+        method: 'GET',
+        headers: {
+          Accept: 'application/json',
+          'Content-Type': 'application/json',
+          Authorization: 'Bearer ' + user.token,
+        },
+      })
+        .then(response => response.json())
+        .then(res => {
+          console.log(res);
+          setOrders(res);
+        })
+        .catch(e => console.log(e));
+    };
+    getData();
+    navigation.navigate('Orders');
+  };
+
   return (
     <>
       {userloading || ordersLoading ? (
         <ActivityIndicator />
       ) : (
-        <Stack.Navigator>
-          <Stack.Screen
-            name="Orders"
-            component={Orders}
-            initialParams={{
-              orders: orders,
-              user: user,
-            }}
-            options={{headerShown: false}}
-          />
-          <Stack.Screen
-            name="OrderFinal"
-            component={OrderFinal}
-            options={{headerShown: false}}
-          />
-          <Stack.Screen
-            name="Confirmed"
-            component={Confirmed}
-            options={{headerShown: false}}
-          />
-        </Stack.Navigator>
+        <>
+          <Button onPress={() => refresh()}>Refresh</Button>
+          <Stack.Navigator>
+            <Stack.Screen
+              name="Orders"
+              component={Orders}
+              initialParams={{
+                orders: orders,
+                user: user,
+              }}
+              options={{headerShown: false}}
+            />
+            <Stack.Screen
+              name="OrderFinal"
+              component={OrderFinal}
+              options={{headerShown: false}}
+            />
+            <Stack.Screen
+              name="Confirmed"
+              component={Confirmed}
+              options={{headerShown: false}}
+            />
+          </Stack.Navigator>
+        </>
       )}
     </>
   );
