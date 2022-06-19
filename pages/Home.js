@@ -21,10 +21,12 @@ axios.defaults.baseURL = API_URL;
 const StatusPage = () => {
   const [status, setStatus] = useState('free');
   const [id, setId] = useState();
+  const [order, setOrder] = useState();
 
   const fetchStatus = async () => {
     const res = await axios.get('/currentorder');
     const response = res.data;
+    setOrder(response);
 
     // if none = free
     // if type is order -- check if status is accepted, confirm or reject the delivering person
@@ -70,12 +72,16 @@ const StatusPage = () => {
   }, []);
   return (
     <View>
-      {status == 'accepted' ? <Accepted id={id} /> : <></>}
-      {status == 'awaiting' ? <Awaiting id={id} /> : <></>}
-      {status == 'payment' ? <Payment id={id} /> : <></>}
-      {status == 'confirming' ? <Confirming id={id} /> : <></>}
-      {status == 'getting-paid' ? <PayGet id={id} /> : <></>}
-      {status == 'confirm-payment' ? <ConfirmPay id={id} /> : <></>}
+      {status == 'accepted' ? <Accepted id={id} order={order} /> : <></>}
+      {status == 'awaiting' ? <Awaiting id={id} order={order} /> : <></>}
+      {status == 'payment' ? <Payment id={id} order={order} /> : <></>}
+      {status == 'confirming' ? <Confirming id={id} order={order} /> : <></>}
+      {status == 'getting-paid' ? <PayGet id={id} order={order} /> : <></>}
+      {status == 'confirm-payment' ? (
+        <ConfirmPay id={id} order={order} />
+      ) : (
+        <></>
+      )}
       {status == 'free' ? <Free /> : <></>}
       {status == 'wait-for-del' ? (
         <Text>Please wait for delivery.</Text>
@@ -84,7 +90,10 @@ const StatusPage = () => {
       )}
       {status == 'delivered' ? (
         <View>
-          <Text>Order has been delivered, please pay.</Text>
+          <Text>
+            Order has been delivered, please pay{' '}
+            {order?.order?.total || 'money'}.{' '}
+          </Text>
           <Button
             onPress={() => {
               axios.post('/order/' + id + '/payment/sent');
@@ -148,7 +157,7 @@ const Confirming = () => {
   return <Text>Order is being confirmed with the user, please wait.</Text>;
 };
 
-const Payment = ({id}) => {
+const Payment = ({id, order}) => {
   const deliver = async () => {
     const url = '/order/' + id + '/deliver';
     await axios.post(url);
@@ -157,18 +166,19 @@ const Payment = ({id}) => {
     <>
       <Text>
         Order in process. Click on the deliver button to confirm delivery and
-        recieve payment.
+        recieve payment of {order?.order?.total || 'money'}.
       </Text>
       <Button onPress={() => deliver()}>Deliver order</Button>
     </>
   );
 };
-const Accepted = ({id}) => {
+const Accepted = ({id, order}) => {
   return (
     <>
       <Text>
-        Order has been accepted by a delivering student, please confirm or
-        reject.
+        Order has been accepted by{' '}
+        {order?.order?.deliveredBy?.name || ' the delivery agent'}, please
+        confirm or reject.
       </Text>
       <Button onPress={() => reject(id)}>Reject</Button>
       <Button onPress={() => confirm(id)}>Confirm</Button>
